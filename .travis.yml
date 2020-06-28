@@ -13,11 +13,14 @@ env:
     DOCKER_BUILDKIT: 1
 
 stages:
-  - test
+  - name: test
+    if: branch != feature/speedup-build
   - name: deploy
     if: branch = master && type != pull_request
   - name: deploy-canary
     if: branch = develop && type != pull_request
+  - name: speedup
+    if: branch = feature/speedup-build && type != pull_request
 
 before_install:
   - PACKAGE_VERSION=$(node -p -e "require('./package.json').version")
@@ -43,4 +46,12 @@ jobs:
         - docker buildx build --cache-from=antoinejaussoin/retro-board-maintenance:${PACKAGE_VERSION} --pull --build-arg BUILDKIT_INLINE_CACHE=1 --platform ${TARGET_ARCHS} -f ./retro-board-maintenance/Dockerfile -t antoinejaussoin/retro-board-maintenance:${PACKAGE_VERSION} --push ./retro-board-maintenance
         - docker buildx build --cache-from=antoinejaussoin/retro-board-frontend:${PACKAGE_VERSION} --pull --build-arg BUILDKIT_INLINE_CACHE=1 --platform ${TARGET_ARCHS} -f ./retro-board-app/Dockerfile -t antoinejaussoin/retro-board-frontend:${PACKAGE_VERSION} --push .
         - docker buildx build --cache-from=antoinejaussoin/retro-board-backend:${PACKAGE_VERSION} --pull --build-arg BUILDKIT_INLINE_CACHE=1 --platform ${TARGET_ARCHS} -f ./retro-board-server/Dockerfile -t antoinejaussoin/retro-board-backend:${PACKAGE_VERSION} --push .
-    
+    - stage: speedup
+      script:
+        - export PACKAGE_VERSION=speedup
+        - make install
+        - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+        - docker buildx build --cache-from=antoinejaussoin/retro-board-maintenance:${PACKAGE_VERSION} --pull --build-arg BUILDKIT_INLINE_CACHE=1 --platform ${TARGET_ARCHS} -f ./retro-board-maintenance/Dockerfile -t antoinejaussoin/retro-board-maintenance:${PACKAGE_VERSION} --push ./retro-board-maintenance
+        - docker buildx build --cache-from=antoinejaussoin/retro-board-frontend:${PACKAGE_VERSION} --pull --build-arg BUILDKIT_INLINE_CACHE=1 --platform ${TARGET_ARCHS} -f ./retro-board-app/Dockerfile -t antoinejaussoin/retro-board-frontend:${PACKAGE_VERSION} --push .
+        - docker buildx build --cache-from=antoinejaussoin/retro-board-backend:${PACKAGE_VERSION} --pull --build-arg BUILDKIT_INLINE_CACHE=1 --platform ${TARGET_ARCHS} -f ./retro-board-server/Dockerfile -t antoinejaussoin/retro-board-backend:${PACKAGE_VERSION} --push .
+  
