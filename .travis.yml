@@ -6,7 +6,11 @@ dist: bionic
 install: true
 
 env:
-  - NODE_ENV=production DOCKER_CLI_EXPERIMENTAL=enabled TARGET_ARCHS=linux/amd64,linux/386,linux/arm64,linux/arm/v7,linux/arm/v6
+  global:
+    NODE_ENV: production
+    DOCKER_CLI_EXPERIMENTAL: enabled
+    TARGET_ARCHS: linux/amd64,linux/386,linux/arm64,linux/arm/v7,linux/arm/v6
+    DOCKER_BUILDKIT: 1
 
 stages:
   - test
@@ -28,15 +32,15 @@ jobs:
       script:
         - make install
         - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-        - docker buildx build --cache-from=antoinejaussoin/retro-board-maintenance:canary --pull --platform ${TARGET_ARCHS} -f ./retro-board-maintenance/Dockerfile -t antoinejaussoin/retro-board-maintenance:${PACKAGE_VERSION} -t antoinejaussoin/retro-board-maintenance:latest --push ./retro-board-maintenance
-        - docker buildx build --cache-from=antoinejaussoin/retro-board-frontend:canary --pull --platform ${TARGET_ARCHS} -f ./retro-board-app/Dockerfile -t antoinejaussoin/retro-board-frontend:${PACKAGE_VERSION} -t antoinejaussoin/retro-board-frontend:latest --push .
-        - docker buildx build --cache-from=antoinejaussoin/retro-board-backend:canary --pull --platform ${TARGET_ARCHS} -f ./retro-board-server/Dockerfile -t antoinejaussoin/retro-board-backend:${PACKAGE_VERSION} -t antoinejaussoin/retro-board-backend:latest --push .
+        - docker buildx build --cache-from=antoinejaussoin/retro-board-maintenance:canary --pull --build-arg BUILDKIT_INLINE_CACHE=1 --platform ${TARGET_ARCHS} -f ./retro-board-maintenance/Dockerfile -t antoinejaussoin/retro-board-maintenance:${PACKAGE_VERSION} -t antoinejaussoin/retro-board-maintenance:latest --push ./retro-board-maintenance
+        - docker buildx build --cache-from=antoinejaussoin/retro-board-frontend:canary --pull --build-arg BUILDKIT_INLINE_CACHE=1 --platform ${TARGET_ARCHS} -f ./retro-board-app/Dockerfile -t antoinejaussoin/retro-board-frontend:${PACKAGE_VERSION} -t antoinejaussoin/retro-board-frontend:latest --push .
+        - docker buildx build --cache-from=antoinejaussoin/retro-board-backend:canary --pull --build-arg BUILDKIT_INLINE_CACHE=1 --platform ${TARGET_ARCHS} -f ./retro-board-server/Dockerfile -t antoinejaussoin/retro-board-backend:${PACKAGE_VERSION} -t antoinejaussoin/retro-board-backend:latest --push .
     - stage: deploy-canary
       script:
         - export PACKAGE_VERSION=canary
         - make install
         - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-        - docker buildx build --cache-from=antoinejaussoin/retro-board-maintenance:${PACKAGE_VERSION} --pull --platform ${TARGET_ARCHS} -f ./retro-board-maintenance/Dockerfile -t antoinejaussoin/retro-board-maintenance:${PACKAGE_VERSION} --push ./retro-board-maintenance
-        - docker buildx build --cache-from=antoinejaussoin/retro-board-frontend:${PACKAGE_VERSION} --pull --platform ${TARGET_ARCHS} -f ./retro-board-app/Dockerfile -t antoinejaussoin/retro-board-frontend:${PACKAGE_VERSION} --push .
-        - docker buildx build --cache-from=antoinejaussoin/retro-board-backend:${PACKAGE_VERSION} --pull --platform ${TARGET_ARCHS} -f ./retro-board-server/Dockerfile -t antoinejaussoin/retro-board-backend:${PACKAGE_VERSION} --push .
+        - docker buildx build --cache-from=antoinejaussoin/retro-board-maintenance:${PACKAGE_VERSION} --pull --build-arg BUILDKIT_INLINE_CACHE=1 --platform ${TARGET_ARCHS} -f ./retro-board-maintenance/Dockerfile -t antoinejaussoin/retro-board-maintenance:${PACKAGE_VERSION} --push ./retro-board-maintenance
+        - docker buildx build --cache-from=antoinejaussoin/retro-board-frontend:${PACKAGE_VERSION} --pull --build-arg BUILDKIT_INLINE_CACHE=1 --platform ${TARGET_ARCHS} -f ./retro-board-app/Dockerfile -t antoinejaussoin/retro-board-frontend:${PACKAGE_VERSION} --push .
+        - docker buildx build --cache-from=antoinejaussoin/retro-board-backend:${PACKAGE_VERSION} --pull --build-arg BUILDKIT_INLINE_CACHE=1 --platform ${TARGET_ARCHS} -f ./retro-board-server/Dockerfile -t antoinejaussoin/retro-board-backend:${PACKAGE_VERSION} --push .
     
