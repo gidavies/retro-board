@@ -6,6 +6,11 @@
 trigger:
 - develop
 
+variables:
+  AzureResourceGroup: 'axretro-rg'
+  AzureRegion: 'uksouth'
+  skipComponentGovernanceDetection: 'true' # Disable internal to Microsoft injected policy
+
 stages:
 - stage: Prep
   displayName: 'Create or update target infrastructure'
@@ -20,5 +25,5 @@ stages:
         azureSubscription: 'Azure On Line Services(2482da3d-7516-4b32-9057-d311caa99664)'
         scriptType: 'bash'
         scriptLocation: 'inlineScript'
-        inlineScript: 'az group create --name $(RG) --location $(AZUREREGION)'
+        inlineScript: 'az group create --name $(AzureResourceGroup) --location $(AzureRegion)'
 
