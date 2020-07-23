@@ -9,21 +9,39 @@ trigger:
 variables:
   AzureResourceGroup: 'axretro-rg'
   AzureRegion: 'uksouth'
+  AzureAppServicePlan: 'axretroplan'
+  AzureAppService: 'ax90retroboard'
+  DockerComposeFile: 'docker-compose.trim.yml'
   skipComponentGovernanceDetection: 'true' # Disable internal to Microsoft injected policy
 
 stages:
 - stage: Prep
-  displayName: 'Create or update target infrastructure'
+  displayName: 'Create or update Azure resources'
   jobs:
-  - job: 'ResourceGroup'
-    displayName: 'Ensure resource group exists'
+  - job: 'Resources'
+    displayName: 'Create or update Azure resource'
     pool:
       vmImage: 'ubuntu-latest'
     steps:
     - task: AzureCLI@2
+      displayName: 'Create resource group'
       inputs:
         azureSubscription: 'Azure On Line Services(2482da3d-7516-4b32-9057-d311caa99664)'
         scriptType: 'bash'
         scriptLocation: 'inlineScript'
         inlineScript: 'az group create --name $(AzureResourceGroup) --location $(AzureRegion)'
+    - task: AzureCLI@2
+      displayName: 'Create App Service Plan'
+      inputs:
+        azureSubscription: 'Azure On Line Services(2482da3d-7516-4b32-9057-d311caa99664)'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: 'az appservice plan create --name $(AzureAppServicePlan) --resource-group $(AzureResourceGroup) --sku S1 --is-linux'
+    - task: AzureCLI@2
+      displayName: 'Create App Service with Docker Compose file'
+      inputs:
+        azureSubscription: 'Azure On Line Services(2482da3d-7516-4b32-9057-d311caa99664)'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: 'az webapp create --resource-group $(AzureResourceGroup) --plan $(AzureAppServicePlan) --name $(AzureAppServicePlan) --multicontainer-config-type compose --multicontainer-config-file $(DockerComposeFile)'
 
