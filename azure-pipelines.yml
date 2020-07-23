@@ -13,7 +13,7 @@ steps:
 - task: AzureCLI@2
   inputs:
     azureSubscription: 'Azure On Line Services(2482da3d-7516-4b32-9057-d311caa99664)'
-    scriptType: 'ps'
+    scriptType: 'bash'
     scriptLocation: 'inlineScript'
     inlineScript: 'az group create --name $(RG) --location $(AZUREREGION)'
 
