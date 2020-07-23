@@ -1,0 +1,100 @@
+version: '3'
+services:
+  redis:
+    image: redis:latest
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '50m'
+
+  postgres:
+    image: postgres:11.6
+    hostname: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: retroboard
+    volumes:
+      - database:/var/lib/postgresql/data
+    restart: unless-stopped
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '50m'
+
+  pgadmin:
+    image: dpage/pgadmin4:4.15
+    depends_on:
+      - postgres
+    ports:
+      - '8080:80'
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@retrospected.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    volumes:
+      - pgadmin:/var/lib/pgadmin
+    restart: unless-stopped
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '50m'
+
+  backend:
+    image: antoinejaussoin/retro-board-backend:latest
+    depends_on:
+      - redis
+    environment:
+      NODE_ENV: production
+      DB_TYPE: postgres
+      DB_NAME: retroboard
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_HOST: postgres
+      DB_PORT: 5432
+      BACKEND_PORT: 3201
+      SQL_LOG: 'false'
+      REDIS_ENABLED: 'true'
+      REDIS_PORT: 6379
+      REDIS_HOST: redis
+      SENTRY_URL: ''
+      SESSION_SECRET: changeme
+      TWITTER_KEY:
+      TWITTER_SECRET:
+      GOOGLE_KEY:
+      GOOGLE_SECRET:
+      GITHUB_KEY:
+      GITHUB_SECRET:
+      BASE_URL: http://localhost:80
+    restart: unless-stopped
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '50m'
+
+  frontend:
+    image: antoinejaussoin/retro-board-frontend:latest
+    depends_on:
+      - backend
+    ports:
+      - '80:80'
+    environment:
+      BACKEND_HOST: backend
+      BACKEND_PORT: 3201
+      GA_ID: ''
+      SENTRY_URL: ''
+      GIPHY_API_KEY: ''
+      AUTH_GOOGLE_ENABLED: 'false'
+      AUTH_TWITTER_ENABLED: 'false'
+      AUTH_GITHUB_ENABLED: 'false'
+    restart: unless-stopped
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '50m'
+
+volumes:
+  database:
+  pgadmin:
