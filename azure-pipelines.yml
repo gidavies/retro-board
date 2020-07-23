@@ -43,5 +43,5 @@ stages:
         azureSubscription: 'Azure On Line Services(2482da3d-7516-4b32-9057-d311caa99664)'
         scriptType: 'bash'
         scriptLocation: 'inlineScript'
-        inlineScript: 'az webapp create --resource-group $(AzureResourceGroup) --plan $(AzureAppServicePlan) --name $(AzureAppServicePlan) --multicontainer-config-type compose --multicontainer-config-file $(DockerComposeFile)'
+        inlineScript: 'az webapp create --resource-group $(AzureResourceGroup) --plan $(AzureAppServicePlan) --name $(AzureAppService) --multicontainer-config-type compose --multicontainer-config-file $(DockerComposeFile)'
 
