@@ -6,14 +6,19 @@
 trigger:
 - develop
 
-pool:
-  vmImage: 'ubuntu-latest'
-
-steps:
-- task: AzureCLI@2
-  inputs:
-    azureSubscription: 'Azure On Line Services(2482da3d-7516-4b32-9057-d311caa99664)'
-    scriptType: 'bash'
-    scriptLocation: 'inlineScript'
-    inlineScript: 'az group create --name $(RG) --location $(AZUREREGION)'
+stages:
+- stage: Prep
+  displayName: 'Create or update target infrastructure'
+  jobs:
+  - job: 'ResourceGroup'
+    displayName: 'Ensure resource group exists'
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - task: AzureCLI@2
+      inputs:
+        azureSubscription: 'Azure On Line Services(2482da3d-7516-4b32-9057-d311caa99664)'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: 'az group create --name $(RG) --location $(AZUREREGION)'
 
