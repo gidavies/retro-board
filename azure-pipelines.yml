@@ -44,4 +44,10 @@ stages:
         scriptType: 'bash'
         scriptLocation: 'inlineScript'
         inlineScript: 'az webapp create --resource-group $(AzureResourceGroup) --plan $(AzureAppServicePlan) --name $(AzureAppService) --multicontainer-config-type compose --multicontainer-config-file $(DockerComposeFile)'
-
+    - task: AzureCLI@2
+      displayName: 'Set App Service application settings'
+      inputs:
+        azureSubscription: 'Azure On Line Services(2482da3d-7516-4b32-9057-d311caa99664)'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: 'az webapp config appsettings set -g $(AzureResourceGroup) -n $(AzureAppService) --settings WEBSITES_WEB_CONTAINER_NAME=frontend'
